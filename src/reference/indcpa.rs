@@ -246,6 +246,8 @@ pub fn indcpa_keypair<R>(
 //                                  to deterministically generate all randomness
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 {
+  println!("Function INDCPA_ENC");
+  println!("{:?}", m);
   let mut at = [Polyvec::new(); KYBER_K];
   let (mut sp, mut pkpv, mut ep, mut b) = 
     (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
