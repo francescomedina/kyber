@@ -4,7 +4,7 @@ use crate::{
   params::*
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Polyvec {
   pub vec: [Poly; KYBER_K]
 }

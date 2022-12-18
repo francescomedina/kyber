@@ -6,7 +6,7 @@ use crate::{
   symmetric::*
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Poly {
   pub coeffs: [i16; KYBER_N]  
 }

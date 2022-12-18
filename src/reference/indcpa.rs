@@ -277,8 +277,12 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   }
 
   polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
+  println!("{:?}", b);
+  println!("{:?}", v);
   polyvec_invntt_tomont(&mut b);
   poly_invntt_tomont(&mut v);
+  println!("{:?}", b);
+  println!("{:?}", v);
 
   polyvec_add(&mut b, &ep);
   poly_add(&mut v, &epp);
