@@ -43,6 +43,7 @@ name = "api"
 harness = false
 
 [features]
+default = ["std"]
 ### Security Levels ###
 # Defaults to "kyber768" if none selected
 # Will throw a compile-time error if more than one level is chosen
