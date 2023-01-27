@@ -76,48 +76,48 @@ fn main () -> Result<(), KyberError> {
   let now = Instant::now();
   let mut rng = CustomRng(2);
 
-  let mut t: [i32; 65536] = [0i32; 65536];
-  let mut shift4: [i32; 65536] = [0i32; 65536];
-  let mut shift8: [i32; 65536] = [0i32; 65536];
-  let mut diff: [i32; 65536] = [0i32; 65536];
-  let mut count = 0;
-  let mut counta = 0;
-  let mut vetcount: [i32; 65536] = [0i32; 65536];
-  for a in 0..65536 {
-    t[a] = (((a as i32)) & 15)*169 - (((a as i32) & 48) >> 4 )*625 + (((a as i32) & 192) >> 6)*829 - ((((a as i32) & 32512) >> 8)*13);
-    shift4[a] = (a as i32) >> 4;
-    if a > 0{
-      diff[a] = t[a] - t[a - 1];
-    }
-    println!("{} {} {}", t[a], counta, diff[a]);
-    if a == 20457 {
-      println!("CIAON");
-    }
-    if diff[a] == -3160 {
-      // println!("{}", count);
-      count = 0;
-      counta += 1;
-    }
-    count += 1;
-    vetcount[a] = counta;
-  }
-  println!("{:?}", diff);
-  println!("{}", counta);
-  counta = 0;
-  for i in 0..5000 {
-    if i <= 0 {
-      continue;
-    }
-    if diff[i] == -3160 && diff[i-1] == 169 && shift4[i] - shift4[i-1] == 1 {
-      println!("\tCHANGE a: {} - a >> 4 << 4: {} a<<4: {}: test: {} t: {} counta: {}", i, shift4[i] << 4, shift4[i], shift4[i] << 2, t[i], vetcount[i]);
-      counta += 1;
-    }
-    println!("a: {} - a >> 4 << 4: {} a<<4: {}: test: {} t: {} counta: {}", i, shift4[i] << 4, shift4[i], shift4[i] << 2, t[i], vetcount[i]);
-  }
-  println!("{}", counta);
+  // let mut t: [i32; 65536] = [0i32; 65536];
+  // let mut shift4: [i32; 65536] = [0i32; 65536];
+  // let mut shift8: [i32; 65536] = [0i32; 65536];
+  // let mut diff: [i32; 65536] = [0i32; 65536];
+  // let mut count = 0;
+  // let mut counta = 0;
+  // let mut vetcount: [i32; 65536] = [0i32; 65536];
+  // for a in 0..65536 {
+  //   t[a] = (((a as i32)) & 15)*169 - (((a as i32) & 48) >> 4 )*625 + (((a as i32) & 192) >> 6)*829 - ((((a as i32) & 32512) >> 8)*13);
+  //   shift4[a] = (a as i32) >> 4;
+  //   if a > 0{
+  //     diff[a] = t[a] - t[a - 1];
+  //   }
+  //   println!("{} {} {}", t[a], counta, diff[a]);
+  //   if a == 20457 {
+  //     println!("CIAON");
+  //   }
+  //   if diff[a] == -3160 {
+  //     // println!("{}", count);
+  //     count = 0;
+  //     counta += 1;
+  //   }
+  //   count += 1;
+  //   vetcount[a] = counta;
+  // }
+  // println!("{:?}", diff);
+  // println!("{}", counta);
+  // counta = 0;
+  // for i in 0..5000 {
+  //   if i <= 0 {
+  //     continue;
+  //   }
+  //   if diff[i] == -3160 && diff[i-1] == 169 && shift4[i] - shift4[i-1] == 1 {
+  //     println!("\tCHANGE a: {} - a >> 4 << 4: {} a<<4: {}: test: {} t: {} counta: {}", i, shift4[i] << 4, shift4[i], shift4[i] << 2, t[i], vetcount[i]);
+  //     counta += 1;
+  //   }
+  //   println!("a: {} - a >> 4 << 4: {} a<<4: {}: test: {} t: {} counta: {}", i, shift4[i] << 4, shift4[i], shift4[i] << 2, t[i], vetcount[i]);
+  // }
+  // println!("{}", counta);
 
   // Alice generates a keypair
-/*  let alice_keys = keypair(&mut rng);
+  let alice_keys = keypair(&mut rng);
 
   // println!("{:?}", alice_keys);
 
@@ -134,6 +134,6 @@ fn main () -> Result<(), KyberError> {
   println!("{:?}", shared_secret_alice);
 
   // Both can now communicate symetrically
-  assert_eq!(shared_secret_alice, shared_secret_bob);*/
+  assert_eq!(shared_secret_alice, shared_secret_bob);
   Ok(())
 }
