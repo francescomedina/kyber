@@ -3,8 +3,13 @@ use crate::{
   error::KyberError,
   RngCore, CryptoRng,
   kem::*,
-  kex::{PublicKey, SecretKey, Encapsulated, Decapsulated}
+  kex::{PublicKey, SecretKey, Encapsulated, Decapsulated},
+  poly::{try_all}
 };
+
+pub fn try_occ() {
+  try_all();
+}
 
 /// Keypair generation with a provided RNG.
 /// 

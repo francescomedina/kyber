@@ -5,6 +5,7 @@ use crate::{
   cbd::*,
   symmetric::*
 };
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug)]
 pub struct Poly {
@@ -215,6 +216,125 @@ pub fn poly_invntt_tomont(r: &mut Poly)
   invntt(&mut r.coeffs);
 }
 
+fn check(original: &[i16], modified: &[i16]){
+  let mut count = 0;
+  for i in 0..KYBER_N {
+    if original[i] != modified[i] {
+      count += 1;
+      println!("index: {} original: {} modified: {}", i, original[i], modified[i]);
+    }
+  }
+  println!("\n{}", count);
+}
+
+#[derive(Debug)]
+pub struct Addends {
+  a: i32,
+  b: i32,
+  has_primes: bool
+}
+
+#[derive(Debug)]
+pub struct Info {
+  mont: i16,
+  addends: Vec<Addends>
+}
+
+fn is_prime(n: u32) -> bool {
+  let limit = (n as f64).sqrt() as u32;
+  for i in 2..=limit {
+    if n % i == 0 {
+      return false;
+    }
+  }
+  true
+}
+
+pub fn try_all(){
+  let mut inv_mont = [0i16; 3328];
+  let offset = 1664;
+  let f = ((1u64 << 32) % KYBER_Q as u64) as i16;
+  for i in -1664..1664 {
+    inv_mont[(i + offset) as usize] = montgomery_reduce(i as i32 * f as i32);
+  }
+  println!("{:?}", inv_mont);
+  return;
+  // const OFFSET: i32 =  20_000;
+  // let mut occ = [0i32; 20_000];
+  // let occ: [Vec<i16>; 36_000_000] = std::iter::repeat_with(|| Vec::new())
+  //     .take(36_000_000)
+  //     .collect::<Vec<_>>()
+  //     .try_into()
+  //     .unwrap();
+  // let mut occ = std::iter::repeat_with(|| Vec::new())
+  //     .take(20_000)
+  //     .collect::<Vec<_>>();
+  let mut info = std::iter::repeat_with(|| Vec::<Info>::new())
+      .take(2_000)
+      .collect::<Vec<_>>();
+  for i in -1_000..1_000 {
+    for j in (i)..1_000 {
+      let index = (i + j) as usize;
+      if i + j < 0 {
+        continue;
+      }
+      let m = montgomery_reduce(i) + montgomery_reduce(j);
+      let mut new = true;
+      for k in info[index].iter_mut() {
+        if k.mont == m {
+          new = false;
+          let mut prime = false;
+          if i >= 0 {
+            prime = is_prime(i as u32);
+          }else if j >= 0 {
+            prime = is_prime(j as u32);
+          }
+          k.addends.push(Addends { a: i, b: j, has_primes: prime});
+          break;
+        }
+      }
+      // for a in occ[index].iter_mut() {
+      //   if *a == m {
+      //     new = false;
+      //     break;
+      //   }
+      // }
+      if new {
+        // occ[index].push(m);
+        info[index].push(Info{ mont: m, addends: Vec::new() });
+      }
+    }
+  }
+  // for i in -10_000..0 {
+  //   for j in (i)..10_000 {
+  //     let index = (i + j) as usize;
+  //     if i + j > 0 {
+  //       let m = montgomery_reduce(i) + montgomery_reduce(j);
+  //       let mut new = true;
+  //       // if occ[index].last().is_none() {
+  //       //   new = true;
+  //       // }
+  //       for a in occ[index].iter_mut() {
+  //         if *a == m {
+  //           new = false;
+  //           break;
+  //         }
+  //       }
+  //       if new {
+  //         occ[index].push(m);
+  //       }
+  //     }
+  //   }
+  // }
+  for i in 0..2_000 {
+    // println!("{}: {:?}", i, occ[i]);
+    println!("{}: {:?}", i, info[i]);
+  }
+  // println!("{:?}", occ);
+}
+
+const MMZ: [i16; 64] = [-456, 549, -1343, 1595, 346, -986, 508, -524, -1567, 463, -1454, -571, 1262, 1503, 198, -545, 1513, -617, -1377, -598, -783, 1096, 563, 1359, -1101, 559, -943, 763, 704, -1198, -1314, -1528, 1376, -1131, 1366, 1553, 124, 1340, 336, -1631, -119, 647, -752, 1431, -1472, 1597, 629, -1042, 1158, 1453, 1527, 286, 85, 489, -414, -71, 1395, -1570, 451, 793, 387, -6, -240, 1165];
+
 // Name:        poly_basemul
 //
 // Description: Multiplication of two polynomials in NTT domain
@@ -224,20 +344,50 @@ pub fn poly_invntt_tomont(r: &mut Poly)
 //              - const poly *b: second input polynomial
 pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
+  let mut r1 = Poly{
+    coeffs: [0i16; KYBER_N]
+  };
+  let mut ac = &Poly {
+    coeffs: [802, 317, 219, 1074, 3017, 3079, 1237, 803, 2033, 2402, 2229, 2786, 699, 2416, 1995, 230, 951, 2234, 2980, 3062, 1492, 1702, 553, 644, 2936, 3117, 240, 2407, 78, 2837, 3247, 2738, 211, 2639, 653, 2281, 1781, 2450, 3236, 711, 934, 1170, 2541, 1226, 1527, 1985, 3045, 1384, 822, 498, 1825, 1664, 793, 2912, 1891, 3061, 1730, 751, 745, 1362, 578, 1885, 1626, 989, 2082, 1980, 467, 571, 1918, 1908, 1520, 28, 2245, 1853, 1033, 1459, 1861, 2943, 2648, 1517, 1796, 387, 2891, 701, 285, 1279, 957, 2447, 1961, 1065, 2818, 1689, 1047, 1727, 1519, 197, 3278, 2532, 105, 1214, 1179, 2219, 920, 347, 2506, 1827, 1805, 614, 572, 3149, 421, 1312, 918, 785, 112, 2325, 2267, 1467, 1050, 1355, 1008, 217, 3242, 3040, 1538, 621, 1254, 1023, 1363, 3049, 1906, 2824, 59, 1213, 3231, 3074, 31, 3276, 1422, 3216, 383, 1149, 606, 2737, 894, 1657, 2697, 1805, 2548, 462, 221, 868, 1661, 1450, 1879, 2923, 778, 1473, 2318, 480, 1827, 396, 1105, 3186, 1634, 274, 2609, 2578, 2900, 1202, 766, 793, 2534, 413, 1452, 949, 2779, 82, 604, 2931, 263, 1022, 13, 1715, 1264, 584, 776, 3011, 217, 2021, 1646, 794, 2047, 1414, 791, 2608, 704, 88, 68, 522, 165, 3258, 1221, 1683, 868, 31, 1317, 2104, 1414, 1055, 2734, 1830, 2766, 3117, 1745, 1267, 83, 2465, 1444, 131, 1893, 90, 1450, 2346, 2487, 2428, 2828, 3291, 769, 1681, 1810, 3216, 1507, 1157, 791, 3001, 3093, 1480, 2405, 13, 1736, 2308, 3, 1821, 2504, 3289, 2938, 1120, 1870, 1968, 2577, 2952, 300, 2231, 428, 2723]
+  };
+  let mut bc = &Poly {
+    coeffs: [-1175, -966, 611, -604, -984, 385, 1584, 317, 1124, 188, -32, 1029, 112, 1211, 351, -606, 1229, 1064, 1566, -1275, 0, -1182, -327, 555, -945, -1477, -671, 1191, 382, -759, -180, 21, 677, 1465, -680, 1432, -1531, -1173, 684, 223, 1030, 1603, 1014, -294, -404, 1235, 681, 117, 104, -1591, -1136, -1324, 1472, 516, -1234, -1525, -1590, -908, 297, -719, -1115, 767, -963, -1364, -220, -293, 180, 704, 168, 1494, 556, 724, -724, 923, 1382, -597, -863, -641, -959, 591, 1475, 966, -998, -943, 970, -1578, -853, -1604, -614, 1477, 1237, -1194, -1142, 471, 672, -358, -725, -1509, 109, 1550, -921, -369, -1133, 469, 1566, -1236, 59, -733, 1518, -1042, -125, -1261, 1445, 1465, -114, 59, 1173, -677, -813, -310, -721, 106, 464, 377, -1590, 1052, 261, -631, 60, -729, -1097, 164, -1329, -325, 1594, 488, -987, -928, -1053, 254, 1153, -762, 891, -768, 1404, 597, -1226, 44, -1272, 1296, 1014, 449, -1024, 802, 1541, -154, -1337, 951, -1119, -139, 712, -1457, 75, -191, -96, -1496, 10, -1590, -1608, -1440, 940, 10, -1228, -11, 785, -890, 1462, 1445, 1169, -1512, -1302, 1109, 911, 1097, -976, -125, 1394, 755, -9, -1086, -915, -1388, -1142, 233, -279, -718, -1435, -1309, 397, -1458, 315, -584, -1175, -1598, -335, 976, -1564, 756, -1530, -615, -1560, 581, -1091, -1619, -1034, -1329, 1518, 1278, 518, -664, -533, -1369, -1041, -597, 1095, -411, -1559, -184, 1130, -1330, 1568, 19, 620, -841, 615, 393, -731, -1135, 1011, 1556, 187, -1108, -509, -1019, -367, 1565, 383, -1651, 1374, -657, 1016, 1224, -873, -876, -1111, -158]
+  };
+  // let now = Instant::now();
+  // println!("\n\nR: {:?}", r);
+  // println!("R1: {:?}", r1);
   for i in 0..(KYBER_N/4) {
     
-    basemul(
+    basemul_m(
       &mut r.coeffs[4*i..], 
-      &a.coeffs[4*i..],
-      &b.coeffs[4*i..], 
+      &ac.coeffs[4*i..],
+      &bc.coeffs[4*i..],
       ZETAS[64 + i]
     );
-    basemul(
+    basemul_m(
       &mut r.coeffs[4*i+2..], 
-      &a.coeffs[4*i+2..],
-      &b.coeffs[4*i+2..],
+      &ac.coeffs[4*i+2..],
+      &bc.coeffs[4*i+2..],
       -(ZETAS[64 + i]));
   }
+  // for i in 0..(KYBER_N/4) {
+  //
+  //   basemul_m(
+  //     &mut r1.coeffs[4*i..],
+  //     &ac.coeffs[4*i..],
+  //     &bc.coeffs[4*i..],
+  //     ZETAS[64 + i]
+  //   );
+  //   basemul_m(
+  //     &mut r1.coeffs[4*i+2..],
+  //     &ac.coeffs[4*i+2..],
+  //     &bc.coeffs[4*i+2..],
+  //     -(ZETAS[64 + i]));
+  // }
+  // check(&r.coeffs,&r1.coeffs);
+  // println!("{:?}", r);
+  // println!("{:?}", r1);
+  // println!("Basemul: {}", now.elapsed().as_nanos());
 }
 
 // Name:        poly_frommont

@@ -226,6 +226,7 @@ pub fn indcpa_keypair<R>(
   for i in 0..KYBER_K {
     polyvec_basemul_acc_montgomery(&mut pkpv.vec[i], &a[i], &skpv);
     poly_frommont(&mut pkpv.vec[i]);
+    println!("{:?}", pkpv.vec[i].coeffs);
   }
   polyvec_add(&mut pkpv, &e);
   polyvec_reduce(&mut pkpv);
@@ -246,8 +247,8 @@ pub fn indcpa_keypair<R>(
 //                                  to deterministically generate all randomness
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 {
-  println!("Function INDCPA_ENC");
-  println!("{:?}", m);
+  // println!("Function INDCPA_ENC");
+  // println!("{:?}", m);
   let mut at = [Polyvec::new(); KYBER_K];
   let (mut sp, mut pkpv, mut ep, mut b) = 
     (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
@@ -277,12 +278,12 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   }
 
   polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
-  println!("{:?}", b);
-  println!("{:?}", v);
+  // println!("{:?}", b);
+  // println!("{:?}", v);
   polyvec_invntt_tomont(&mut b);
   poly_invntt_tomont(&mut v);
-  println!("{:?}", b);
-  println!("{:?}", v);
+  // println!("{:?}", b);
+  // println!("{:?}", v);
 
   polyvec_add(&mut b, &ep);
   poly_add(&mut v, &epp);
