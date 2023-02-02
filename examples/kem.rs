@@ -94,8 +94,8 @@ pub fn barrett_reduce(a: i16) -> i16
 
 pub fn fbrm6(b: i16) -> i16 {
   let a = b.abs();
-  if (a & 16384) == 0 {
-    if (a & 16383) < 8323 {
+  if a < 18310 {
+    if a < 8323 {
       return match a {
         x if x < 1665 => if b < 0 { b } else { a },
         x if x < 4994 => if b < 0 { b + 3329 } else { a - 3329},
@@ -108,7 +108,7 @@ pub fn fbrm6(b: i16) -> i16 {
       _ => if b < 0 { b + 16645 } else { a - 16645 }
     };
   }
-  if (a & 32767) < 24968 {
+  if a < 24968 {
     return match a {
       x if x < 18310 => if b < 0 { b + 16645 } else { a - 16645 }
       x if x < 21639 => if b < 0 { b + 19974 } else { a - 19974 },
@@ -254,7 +254,8 @@ fn main () -> Result<(), KyberError> {
   let mut p_modMatch = 0;
   let mut pareggio = 0;
   for a in 0..62000 {
-    let b = (a as i32 - 31000) as i16;
+    let d = (a as i32 - 31000) as i16;
+    let b=  rng.gen_range(d..(d + 314));
     // t[a] = ((b & 15)*169 - ((b & 48) >> 4 )*625 + ((b & 192) >> 6)*829 - (((b & 32512) >> 8)*13) + (a as i32 >> 16)) as i16;
     t[a] = barrett_reduce(b);
     // t[a] = fbrm4(b);
@@ -283,10 +284,10 @@ fn main () -> Result<(), KyberError> {
     else{
       p_modMatch += 1;
     }
-    println!("Value: {}", b);
-    println!("MATCH: {}", elapsed3);
-    // println!("MOD: {}", elapsed);
-    println!("ORIGINAL: {}\n", elapsed2);
+    // println!("Value: {}", b);
+    // println!("MATCH: {}", elapsed3);
+    // // println!("MOD: {}", elapsed);
+    // println!("ORIGINAL: {}\n", elapsed2);
     if t[a] != f {
       println!("\tDIVERSO {}-> barrett: {} fbr: {}", b, t[a], f);
       c += 1;
