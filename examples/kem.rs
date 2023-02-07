@@ -1,3 +1,5 @@
+use std::time::Instant;
+use rand_core::{Error, impls};
 use pqc_kyber::*;
 
 const QINV: i32 = 62209; // q^(-1) mod 2^16
