@@ -246,8 +246,6 @@ pub fn indcpa_keypair<R>(
 //                                  to deterministically generate all randomness
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 {
-  println!("Function INDCPA_ENC");
-  println!("{:?}", m);
   let mut at = [Polyvec::new(); KYBER_K];
   let (mut sp, mut pkpv, mut ep, mut b) = 
     (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
@@ -277,12 +275,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   }
 
   polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
-  println!("{:?}", b);
-  println!("{:?}", v);
   polyvec_invntt_tomont(&mut b);
   poly_invntt_tomont(&mut v);
-  println!("{:?}", b);
-  println!("{:?}", v);
 
   polyvec_add(&mut b, &ep);
   poly_add(&mut v, &epp);
@@ -290,6 +284,34 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   polyvec_reduce(&mut b);
   poly_reduce(&mut v);
 
+  // let mut a_compress = Poly::new();
+  // let mut c_decompress = Poly::new();
+  // let mut cj = 0;
+  // let mut dj = -4096;
+  // for i in 0..16 {
+  //
+  //   for j in 0..KYBER_N {
+  //     a_compress.coeffs[j] = j as i16 + cj;
+  //   }
+  //   let mut qwe = [0u8; 128];
+  //   poly_compress(&mut qwe, a_compress);
+  //   // let mut mc = [0u8; KYBER_CIPHERTEXTBYTES];
+  //   // mc.clone_from_slice(&qwe[0..]);
+  //   poly_decompress(&mut c_decompress,&qwe);
+  //   let mut yrt = 0;
+  //   // let mut asd = 0;
+  //   // for k in 0..128 {
+  //   //   println!("{} {} {} {}", a_compress.coeffs[asd], a_compress.coeffs[asd+1], yrt, qwe[k]);
+  //   //   asd += 2 as usize;
+  //   //   yrt += 1;
+  //   // }
+  //   for k in 0..KYBER_N/2 {
+  //     println!("{} {}", (qwe[yrt as usize]) & 15, c_decompress.coeffs[k]);
+  //     println!("{} {}", (qwe[yrt as usize]) >> 4, c_decompress.coeffs[k]);
+  //     yrt += 1;
+  //   }
+  //   cj += 256;
+  // }
   pack_ciphertext(c, &mut b, v);
 }
 
@@ -305,7 +327,7 @@ pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
 {
   let (mut b, mut skpv) = (Polyvec::new(),Polyvec::new());
   let (mut v, mut mp) = (Poly::new(),Poly::new());
- 
+
   unpack_ciphertext(&mut b, &mut v, c);
   unpack_sk(&mut skpv, sk);
 

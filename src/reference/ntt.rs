@@ -107,7 +107,7 @@ pub fn ntt(r: &mut[i16])
       while j < (start + len) {
         t = fqmul(zeta, r[j + len]);
         // t = ffqmul(k-1, r[j + len]);
-        println!("FQMUL");
+        // println!("FQMUL");
         r[j + len] = r[j] - t;
         r[j] += t;
         j += 1;
@@ -143,7 +143,7 @@ pub fn invntt(r: &mut[i16])
         r[j + len] = r[j + len] -t;
         r[j + len] = fqmul(zeta, r[j + len]);
         // r[j + len] = ffqmul(k+1, r[j + len]);
-        println!("FQMUL");
+        // println!("FQMUL");
         j += 1
       }
       start = j + len;
@@ -153,7 +153,7 @@ pub fn invntt(r: &mut[i16])
   for j in 0..256 {
     // r[j] = fqmul(r[j], F);
     r[j] = ffqmulf(r[j]);
-    println!("FQMUL");
+    // println!("FQMUL");
   }
 }
 
@@ -170,7 +170,7 @@ pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16)
 {
   r[0]  = fqmul(a[1], b[1]);
   r[0]  = fqmul(r[0], zeta);
-  println!("FQMUL");
+  // println!("FQMUL");
   r[0] += fqmul(a[0], b[0]);
 
   r[1]  = fqmul(a[0], b[1]);
