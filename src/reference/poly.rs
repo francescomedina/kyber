@@ -224,8 +224,11 @@ pub fn poly_invntt_tomont(r: &mut Poly)
 //              - const poly *b: second input polynomial
 pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
+  let mut a_tot = 0;
+  let mut b_tot = 0;
   for i in 0..(KYBER_N/4) {
-    
+    a_tot += a.coeffs[4*i] + a.coeffs[4*i + 1] + a.coeffs[4*i + 2] + a.coeffs[4*i + 3];
+    b_tot += b.coeffs[4*i] + b.coeffs[4*i + 1] + b.coeffs[4*i + 2] + b.coeffs[4*i + 3];
     basemul(
       &mut r.coeffs[4*i..], 
       &a.coeffs[4*i..],
@@ -237,6 +240,10 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
       &a.coeffs[4*i+2..],
       &b.coeffs[4*i+2..],
       -(ZETAS[64 + i]));
+  }
+  let tot = a_tot * b_tot;
+  for i in 0..128 {
+    r.coeffs[2*i+1] = montgomery_reduce(tot - );
   }
 }
 

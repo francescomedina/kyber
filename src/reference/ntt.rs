@@ -143,12 +143,15 @@ pub fn invntt(r: &mut[i16])
 //              - const i16 a[2]: the first factor
 //              - const i16 b[2]: the second factor
 //              - i16 zeta: integer defining the reduction polynomial
-pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16)
+pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16, )
 {
-  r[0]  = fqmul(a[1], b[1]);
-  r[0]  = fqmul(r[0], zeta);
-  r[0] += fqmul(a[0], b[0]);
+  let a0b0 = a[0] as i32 * b[0] as i32;
+  let a1b1 = a[1] as i32 * b[1] as i32;
 
-  r[1]  = fqmul(a[0], b[1]);
-  r[1] += fqmul(a[1], b[0]);
+  r[0]  = montgomery_reduction(a1b1);
+  r[0]  = fqmul(r[0], zeta);
+  r[0] += montgomery_reduction(a0b0);
+
+  // r[1]  = fqmul(a[0], b[1]);
+  // r[1] += fqmul(a[1], b[0]);
 }
