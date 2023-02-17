@@ -1,3 +1,4 @@
+use std::time::Instant;
 use crate::{
   params::*,
   ntt::*,
@@ -224,27 +225,41 @@ pub fn poly_invntt_tomont(r: &mut Poly)
 //              - const poly *b: second input polynomial
 pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
-  let mut a_tot = 0;
-  let mut b_tot = 0;
+  let n2 = Instant::now();
   for i in 0..(KYBER_N/4) {
-    a_tot += a.coeffs[4*i] + a.coeffs[4*i + 1] + a.coeffs[4*i + 2] + a.coeffs[4*i + 3];
-    b_tot += b.coeffs[4*i] + b.coeffs[4*i + 1] + b.coeffs[4*i + 2] + b.coeffs[4*i + 3];
-    basemul(
-      &mut r.coeffs[4*i..], 
+    basemul2(
+      &mut r.coeffs[4*i..],
       &a.coeffs[4*i..],
-      &b.coeffs[4*i..], 
+      &b.coeffs[4*i..],
       ZETAS[64 + i]
     );
-    basemul(
-      &mut r.coeffs[4*i+2..], 
+    basemul2(
+      &mut r.coeffs[4*i+2..],
       &a.coeffs[4*i+2..],
       &b.coeffs[4*i+2..],
       -(ZETAS[64 + i]));
   }
-  let tot = a_tot * b_tot;
-  for i in 0..128 {
-    r.coeffs[2*i+1] = montgomery_reduce(tot - );
+  let el2 = n2.elapsed().as_nanos();
+  println!("MOD {:?}", el2);
+  // println!("R MOD {:?}", r);
+
+  let n = Instant::now();
+  for i in 0..(KYBER_N/4) {
+    basemul(
+      &mut r.coeffs[4*i..],
+      &a.coeffs[4*i..],
+      &b.coeffs[4*i..],
+      ZETAS[64 + i]
+    );
+    basemul(
+      &mut r.coeffs[4*i+2..],
+      &a.coeffs[4*i+2..],
+      &b.coeffs[4*i+2..],
+      -(ZETAS[64 + i]));
   }
+  let el = n.elapsed().as_nanos();
+  println!("ORG {:?}\n", el);
+  // println!("R {:?}", r);
 }
 
 // Name:        poly_frommont

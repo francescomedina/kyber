@@ -1,5 +1,5 @@
 use crate::reduce::*;
-
+use crate::reduce::{montgomery_reduce};
 // Code to generate zetas used in the number-theoretic transform:
 //
 //#define KYBER_ROOT_OF_UNITY 17
@@ -143,15 +143,34 @@ pub fn invntt(r: &mut[i16])
 //              - const i16 a[2]: the first factor
 //              - const i16 b[2]: the second factor
 //              - i16 zeta: integer defining the reduction polynomial
-pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16, )
+pub fn basemul_m(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16, ab: &mut[i32])
 {
   let a0b0 = a[0] as i32 * b[0] as i32;
   let a1b1 = a[1] as i32 * b[1] as i32;
-
-  r[0]  = montgomery_reduction(a1b1);
+  ab[0] = a0b0 + a1b1;
+  r[0]  = montgomery_reduce(a1b1);
   r[0]  = fqmul(r[0], zeta);
-  r[0] += montgomery_reduction(a0b0);
+  r[0] += montgomery_reduce(a0b0);
+}
 
-  // r[1]  = fqmul(a[0], b[1]);
-  // r[1] += fqmul(a[1], b[0]);
+pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16)
+{
+  let a0 = a[0] as i32;
+  let a1 = a[1] as i32;
+  let b0 = b[0] as i32;
+  let b1 = b[1] as i32;
+  r[0]  = montgomery_reduce(montgomery_reduce(a1*b1) as i32 *zeta as i32 + a0*b0);
+  r[1] = montgomery_reduce(a1 * b0 + a0 * b1);
+}
+
+pub fn basemul2(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16)
+{
+  let a0 = a[0] as i32;
+  let a1 = a[1] as i32;
+  let b0 = b[0] as i32;
+  let b1 = b[1] as i32;
+  let x = a1*b1;
+  let y = a0*b0;
+  r[1] = montgomery_reduce((a0+a1)*(b0+b1) - y - x);
+  r[0]  = montgomery_reduce(montgomery_reduce(x) as i32 *zeta as i32 + y);
 }
